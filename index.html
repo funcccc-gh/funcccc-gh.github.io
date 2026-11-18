@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>图片展示</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:#0f1115; color:#e8eaed;
+    font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+  }
+  header{
+    padding:30px 20px; text-align:center;
+    background:linear-gradient(180deg,#1b2030,#0f1115);
+    border-bottom:1px solid #262b36;
+  }
+  header h1{margin:0; font-size:clamp(22px,4vw,34px); letter-spacing:2px}
+
+  main{max-width:1500px; margin:0 auto; padding:24px 20px 60px}
+  .grid{
+    display:grid; gap:14px;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  }
+  .card{
+    margin:0; background:#171a21; border:1px solid #262b36;
+    border-radius:12px; overflow:hidden;
+  }
+  .card img{
+    width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:#0b0d11;
+  }
+  .card figcaption{
+    padding:8px 10px; font-size:12px; color:#9aa3b2;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  #error{
+    display:none; text-align:center; padding:80px 20px;
+    color:#ff6b6b; font-size:20px; letter-spacing:1px;
+  }
+  @media(max-width:600px){ .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px} }
+</style>
+</head>
+<body>
+
+<header><h1>图片展示</h1></header>
+
+<main>
+  <div id="gallery" class="grid"></div>
+  <div id="error">图片加载失败</div>
+</main>
+
+<script>
+// JSON 清单文件（在 image 文件夹里），按顺序尝试
+const JSON_FILES = ['image/image.json', 'image/manifest.json', 'image/list.json'];
+const ROOT = 'image/';
+
+const gallery = document.getElementById('gallery');
+const errorBox = document.getElementById('error');
+
+function fail(){
+  gallery.innerHTML = '';
+  gallery.style.display = 'none';
+  errorBox.style.display = 'block';
+}
+
+// 兼容三种写法：["a.jpg"] / {"images":["a.jpg"]} / [{"src":"a.jpg","title":"标题"}]
+function parseList(data){
+  const arr = Array.isArray(data) ? data : (data && Array.isArray(data.images) ? data.images : null);
+  if(!arr) return null;
+  const list = arr.map(x => {
+    const p = typeof x === 'string' ? x : (x && (x.src || x.path || x.url));
+    if(!p || typeof p !== 'string') return null;
+    const src = /^(https?:|\/)/i.test(p) || p.startsWith(ROOT) ? p : ROOT + p;
+    const title = (typeof x === 'object' && x.title) || decodeURIComponent(p.split('/').pop());
+    return {src, title};
+  }).filter(Boolean);
+  return list.length ? list : null;
+}
+
+async function load(){
+  for(const file of JSON_FILES){
+    try{
+      const res = await fetch(file, {cache:'no-store'});
+      if(!res.ok) continue;
+      const list = parseList(await res.json());
+      if(!list) continue;
+
+      const frag = document.createDocumentFragment();
+      list.forEach(({src, title}) => {
+        const fig = document.createElement('figure');
+        fig.className = 'card';
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.src = encodeURI(src);
+        img.alt = title;
+        img.onerror = () => fig.remove();      // 单张坏图直接移除
+        const cap = document.createElement('figcaption');
+        cap.textContent = title;
+        cap.title = title;
+        fig.append(img, cap);
+        frag.appendChild(fig);
+      });
+      gallery.appendChild(frag);
+      return;                                   // 成功，结束
+    }catch(e){ /* 换下一个候选文件 */ }
+  }
+  fail();                                       // 全部失败
+}
+
+load();
+</script>
+</body>
+</html>
