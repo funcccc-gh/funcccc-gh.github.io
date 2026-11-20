@@ -3,111 +3,949 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>图片展示</title>
+<title>Minecraft 服务器</title>
+<meta name="description" content="">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏️</text></svg>">
 <style>
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:#0f1115; color:#e8eaed;
-    font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
-  }
-  header{
-    padding:30px 20px; text-align:center;
-    background:linear-gradient(180deg,#1b2030,#0f1115);
-    border-bottom:1px solid #262b36;
-  }
-  header h1{margin:0; font-size:clamp(22px,4vw,34px); letter-spacing:2px}
+:root{
+  --bg:#08090a; --bg2:#0e1012; --bg3:#141719;
+  --line:#1e2226; --txt:#e8eaed; --muted:#8b9298;
+  --accent:#7ee787; --danger:#ff7b72; --warn:#e3b341; --radius:14px; --nav:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);line-height:1.7;-webkit-font-smoothing:antialiased;
+  font-family:"Inter","HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--bg3);padding:1px 6px;border-radius:5px;font-size:.9em}
+::selection{background:var(--accent);color:#000}
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+section{scroll-margin-top:80px}
 
-  main{max-width:1500px; margin:0 auto; padding:24px 20px 60px}
-  .grid{
-    display:grid; gap:14px;
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  }
-  .card{
-    margin:0; background:#171a21; border:1px solid #262b36;
-    border-radius:12px; overflow:hidden;
-  }
-  .card img{
-    width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:#0b0d11;
-  }
-  .card figcaption{
-    padding:8px 10px; font-size:12px; color:#9aa3b2;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-  #error{
-    display:none; text-align:center; padding:80px 20px;
-    color:#ff6b6b; font-size:20px; letter-spacing:1px;
-  }
-  @media(max-width:600px){ .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px} }
+/* 导航 */
+.nav{position:fixed;top:0;left:0;right:0;height:var(--nav);z-index:100;
+  background:rgba(8,9,10,.72);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1160px;margin:0 auto;padding:0 24px;height:100%;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.5px}
+.logo i{width:10px;height:10px;background:var(--accent);border-radius:2px;box-shadow:0 0 12px var(--accent)}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nav-links a{padding:8px 13px;border-radius:8px;font-size:14px;color:var(--muted);transition:.2s;white-space:nowrap}
+.nav-links a:hover{color:var(--txt);background:var(--bg3)}
+.nav-links a.active{color:var(--accent)}
+.nav-links a.cta{border:1px solid var(--line);color:var(--txt);margin-left:6px}
+.nav-links a.cta:hover{border-color:var(--accent);color:var(--accent)}
+.burger{display:none;width:38px;height:38px;border:1px solid var(--line);border-radius:9px;background:none;cursor:pointer;flex-direction:column;justify-content:center;align-items:center;gap:4px}
+.burger span{width:16px;height:1.5px;background:var(--txt)}
+
+/* 首页 */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:calc(var(--nav) + 60px) 0 80px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.28;filter:saturate(.7)}
+.hero::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(900px 500px at 20% 20%,rgba(126,231,135,.10),transparent 60%),
+             linear-gradient(180deg,rgba(8,9,10,.55),rgba(8,9,10,.92) 70%,var(--bg))}
+.hero-in{position:relative;z-index:2}
+.tag{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);
+  border:1px solid var(--line);background:var(--bg2);padding:6px 14px;border-radius:999px;margin-bottom:26px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.dot.off{background:#e5534b}
+h1{font-size:clamp(38px,7vw,74px);line-height:1.1;font-weight:800;letter-spacing:-1.5px}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{color:var(--muted);font-size:clamp(15px,2vw,18px);max-width:600px;margin:22px 0 34px}
+.btns{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 22px;border-radius:10px;
+  font-size:14.5px;font-weight:600;border:1px solid var(--line);background:var(--bg2);cursor:pointer;transition:.2s;color:var(--txt);font-family:inherit}
+.btn:hover{border-color:#33393f;transform:translateY(-2px)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn.primary{background:var(--accent);color:#06210c;border-color:var(--accent)}
+.btn.primary:hover{box-shadow:0 8px 26px rgba(126,231,135,.22)}
+.btn.sm{padding:9px 16px;font-size:13.5px}
+.ip{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.5px}
+.stats{display:flex;flex-wrap:wrap;gap:44px;margin-top:60px;padding-top:32px;border-top:1px solid var(--line)}
+.stats b{display:block;font-size:26px;font-weight:700}
+.stats span{font-size:13px;color:var(--muted)}
+
+/* 通用 */
+.sec{padding:100px 0}
+.sec.alt{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.sec-head{margin-bottom:44px}
+.label{display:flex;align-items:center;gap:9px;font-size:12px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px}
+.label::before{content:"";width:22px;height:1px;background:var(--accent)}
+h2{font-size:clamp(26px,4vw,36px);font-weight:700;letter-spacing:-.5px}
+.sec-head p{color:var(--muted);margin-top:10px;font-size:15px}
+.box{border:1px solid var(--line);border-radius:var(--radius);padding:26px;background:var(--bg2)}
+.box h3{font-size:16px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.box p{font-size:14px;color:var(--muted)}
+.note{margin-top:16px;font-size:13px;color:var(--muted)}
+.note a{color:var(--accent);border-bottom:1px dashed rgba(126,231,135,.4)}
+.side-note{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:#6d757b}
+
+/* 画廊 */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{position:relative;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--bg2);cursor:pointer;transition:.25s}
+.card:hover{border-color:#2e343a;transform:translateY(-4px)}
+.thumb{position:relative;aspect-ratio:16/10;background:linear-gradient(135deg,#15191c,#0c0f11);overflow:hidden}
+.thumb span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#2f363c;font-size:13px;letter-spacing:2px}
+.thumb img{position:relative;width:100%;height:100%;object-fit:cover;transition:.5s}
+.card:hover .thumb img{transform:scale(1.06)}
+.cap{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cap h3{font-size:15px;font-weight:600}
+.cap p{font-size:12.5px;color:var(--muted)}
+.arrow{color:var(--muted);transition:.2s}
+.card:hover .arrow{color:var(--accent);transform:translateX(3px)}
+
+/* 下载 */
+.tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:20px}
+.search{flex:1;min-width:220px;display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--bg2);border-radius:10px;padding:10px 14px}
+.search input{flex:1;background:none;border:none;outline:none;color:var(--txt);font-size:14px;font-family:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 14px;font-size:13px;border:1px solid var(--line);border-radius:999px;background:var(--bg2);color:var(--muted);cursor:pointer;transition:.2s;font-family:inherit}
+.chip:hover{color:var(--txt)}
+.chip.on{background:var(--accent);color:#06210c;border-color:var(--accent);font-weight:600}
+.list{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--bg2)}
+.row{display:flex;align-items:center;gap:18px;padding:20px 22px;border-bottom:1px solid var(--line);transition:.2s}
+.row:last-child{border-bottom:none}
+.row:hover{background:var(--bg3)}
+.ico{flex:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--accent)}
+.info{flex:1;min-width:0}
+.info h3{font-size:15.5px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:500;color:var(--muted);border:1px solid var(--line);padding:1px 8px;border-radius:5px}
+.info p{font-size:13px;color:var(--muted);margin:3px 0 8px}
+.meta{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:#6d757b;font-family:ui-monospace,monospace}
+.empty{padding:50px;text-align:center;color:var(--muted);font-size:14px}
+
+/* 规则 */
+.rules-top{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.pill{font-size:12px;color:var(--muted);border:1px solid var(--line);background:var(--bg2);padding:5px 12px;border-radius:999px}
+.rule-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:16px}
+.rule-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg2);padding:24px;transition:.25s}
+.rule-card:hover{border-color:#2e343a;transform:translateY(-3px)}
+.rule-card h3{font-size:16px;display:flex;align-items:center;gap:10px}
+.rule-card .rd{font-size:12.5px;color:#6d757b;margin:2px 0 16px}
+.rule-list{display:grid;gap:11px;counter-reset:r}
+.rule-list li{list-style:none;display:flex;gap:12px;font-size:13.5px;color:var(--muted);line-height:1.65}
+.rule-list li::before{counter-increment:r;content:counter(r);flex:none;width:20px;height:20px;margin-top:3px;
+  border-radius:6px;background:var(--bg3);border:1px solid var(--line);color:var(--accent);
+  font-size:11px;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace}
+.table-wrap{overflow-x:auto;margin-top:14px}
+.punish{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+.punish th{text-align:left;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:#6d757b;font-weight:500;padding:10px 14px;border-bottom:1px solid var(--line)}
+.punish td{padding:13px 14px;border-bottom:1px solid var(--line);color:var(--muted)}
+.punish tr:last-child td{border-bottom:none}
+.punish td:first-child{color:var(--txt)}
+.punish tbody tr:hover{background:var(--bg3)}
+.lv{display:inline-block;padding:2px 9px;border-radius:6px;font-size:12px;border:1px solid;white-space:nowrap}
+.lv.warn{color:var(--warn);border-color:rgba(227,179,65,.35);background:rgba(227,179,65,.08)}
+.lv.ban{color:var(--danger);border-color:rgba(255,123,114,.35);background:rgba(255,123,114,.08)}
+
+/* 白名单 */
+.wl{display:grid;grid-template-columns:.85fr 1.15fr;gap:16px;align-items:start}
+.rules{display:grid;gap:11px;margin-top:14px}
+.rule{display:flex;gap:12px;font-size:13.5px;color:var(--muted);line-height:1.65}
+.rule b{flex:none;width:20px;height:20px;margin-top:3px;border-radius:6px;background:var(--bg3);border:1px solid var(--line);color:var(--accent);font-size:11px;display:flex;align-items:center;justify-content:center}
+.rule a{color:var(--accent);border-bottom:1px dashed rgba(126,231,135,.4)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.field{grid-column:span 2;margin-bottom:16px}
+.field.half{grid-column:span 1}
+.field>label{display:block;font-size:13.5px;font-weight:500;margin-bottom:7px}
+.req{color:var(--accent)}
+.opt-tag{font-size:11px;color:#6d757b;font-weight:400}
+.counter{float:right;font-size:11.5px;color:#6d757b;font-family:ui-monospace,monospace}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--txt);font:inherit;font-size:14px;outline:none;transition:.2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(126,231,135,.12)}
+textarea{min-height:104px;resize:vertical;line-height:1.6}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.hint{font-size:12px;color:#6d757b;margin-top:6px}
+.err{font-size:12px;color:var(--danger);margin-top:6px;display:none}
+.field.bad input,.field.bad select,.field.bad textarea{border-color:#e5534b}
+.field.bad .err{display:block}
+
+/* UUID 自动查询状态行（独立命名空间，避免与结果图标样式冲突） */
+.lookup-line{display:flex;align-items:center;gap:8px;margin-top:6px;min-height:18px;flex-wrap:wrap}
+.lookup-msg{font-size:12px;line-height:1.5;display:none;align-items:center;gap:7px;font-weight:400}
+.lookup-msg.show{display:inline-flex}
+.lookup-msg.is-ok{color:var(--accent)}
+.lookup-msg.is-bad{color:var(--warn)}
+.lookup-msg.is-load{color:var(--muted)}
+.lookup-retry{display:none;background:none;border:none;padding:0;font:inherit;font-size:12px;
+  color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.lookup-retry.show{display:inline}
+.spin{width:11px;height:11px;flex:none;border:2px solid rgba(139,146,152,.25);border-top-color:var(--muted);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:6px}
+.actions .side{font-size:12px;color:#6d757b}
+.agree-note{margin-top:14px;font-size:12.5px;color:#6d757b}
+.agree-note a{color:var(--accent);border-bottom:1px dashed rgba(126,231,135,.4)}
+.hp{position:absolute!important;left:-9999px;opacity:0;height:0}
+.done{display:none;text-align:center;padding:26px 8px}
+.done.show{display:block}
+.done-icon{width:56px;height:56px;margin:0 auto 18px;border-radius:50%;border:1px solid var(--accent);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1}
+.done.bad .done-icon{border-color:var(--danger);color:var(--danger)}
+.done h3{font-size:19px;margin-bottom:8px}
+.done p{font-size:14px;color:var(--muted);max-width:430px;margin:0 auto 20px}
+.preview{display:none;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:18px;
+  font-family:ui-monospace,monospace;font-size:12.5px;color:var(--muted);white-space:pre-wrap;word-break:break-word;max-height:260px;overflow:auto}
+.preview.show{display:block}
+.done-btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+
+/* 关于 / 页脚 */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.steps{margin-top:16px;display:grid;gap:10px}
+.step{display:flex;gap:14px;align-items:flex-start;font-size:14px;color:var(--muted)}
+.step b{flex:none;width:22px;height:22px;border-radius:6px;background:var(--bg3);border:1px solid var(--line);color:var(--accent);font-size:12px;display:flex;align-items:center;justify-content:center}
+footer{border-top:1px solid var(--line);padding:40px 0;color:var(--muted);font-size:13px}
+.foot{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+
+/* 灯箱 / 提示 */
+.lb{position:fixed;inset:0;z-index:200;background:rgba(4,5,6,.95);display:none;align-items:center;justify-content:center;padding:70px 20px}
+.lb.open{display:flex}
+.lb img{max-width:100%;max-height:78vh;border-radius:10px;border:1px solid var(--line)}
+.lb-cap{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-size:14px;color:var(--muted)}
+.lb-cap b{color:var(--txt);display:block;font-size:16px}
+.lb button{position:absolute;background:rgba(20,23,25,.8);border:1px solid var(--line);color:var(--txt);width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:18px;transition:.2s}
+.lb button:hover{border-color:var(--accent);color:var(--accent)}
+.lb .close{top:20px;right:20px}
+.lb .prev{left:20px;top:50%;transform:translateY(-50%)}
+.lb .next{right:20px;top:55%;transform:translateY(-50%)}
+.lb .next{top:50%}
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:300;background:var(--accent);color:#06210c;
+  font-weight:600;font-size:14px;padding:11px 22px;border-radius:10px;opacity:0;pointer-events:none;transition:.28s;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.reveal{opacity:0;transform:translateY(18px);transition:.6s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+
+@media(max-width:900px){ .wl{grid-template-columns:1fr} }
+@media(max-width:860px){
+  .burger{display:flex}
+  .nav-links{position:fixed;top:var(--nav);left:0;right:0;display:none;flex-direction:column;align-items:stretch;
+    background:rgba(8,9,10,.98);border-bottom:1px solid var(--line);padding:14px 24px 22px;gap:4px}
+  .nav-links.open{display:flex}
+  .nav-links a{padding:12px 14px}
+  .nav-links a.cta{margin-left:0}
+  .sec{padding:70px 0}
+  .row{flex-wrap:wrap}
+  .dl{width:100%}.dl .btn{width:100%}
+  .stats{gap:28px}
+  .form-grid{grid-template-columns:1fr}
+  .field.half{grid-column:span 2}
+}
 </style>
 </head>
 <body>
 
-<header><h1>图片展示</h1></header>
+<header class="nav">
+  <div class="nav-in">
+    <a href="#home" class="logo"><i></i><span id="logoName"></span></a>
+    <nav class="nav-links" id="menu"></nav>
+    <button class="burger" id="burger" aria-label="menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
 
-<main>
-  <div id="gallery" class="grid"></div>
-  <div id="error">图片加载失败</div>
-</main>
+<section id="home" class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="wrap hero-in">
+    <div class="tag"><span class="dot" id="statusDot"></span><span id="statusText"></span></div>
+    <h1 id="heroTitle"></h1>
+    <p class="sub" id="slogan"></p>
+    <div class="btns">
+      <button class="btn primary" id="copyIp">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+        <span id="copyIpText"></span>
+      </button>
+      <a class="btn" id="heroBtn2"></a>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+</section>
+
+<section id="gallery" class="sec">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="label" id="gLabel"></div><h2 id="gTitle"></h2><p id="gDesc"></p></div>
+    <div class="grid" id="galleryGrid"></div>
+  </div>
+</section>
+
+<section id="downloads" class="sec alt">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="label" id="dLabel"></div><h2 id="dTitle"></h2><p id="dDesc"></p></div>
+    <div class="tools reveal">
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b9298" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search">
+      </label>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="list reveal" id="fileList"></div>
+    <p class="note" id="dNote"></p>
+  </div>
+</section>
+
+<section id="rules" class="sec">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="label" id="rLabel"></div><h2 id="rTitle"></h2><p id="rDesc"></p>
+      <div class="rules-top" id="rPills"></div>
+    </div>
+    <div class="rule-grid" id="ruleGrid"></div>
+    <div class="box reveal" style="margin-top:16px">
+      <h3 id="rPunishTitle"></h3>
+      <div class="table-wrap">
+        <table class="punish"><thead id="rPunishHead"></thead><tbody id="rPunishBody"></tbody></table>
+      </div>
+      <p class="note" id="rAppeal"></p>
+      <p class="side-note" id="rNote"></p>
+    </div>
+  </div>
+</section>
+
+<section id="whitelist" class="sec alt">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="label" id="wLabel"></div><h2 id="wTitle"></h2><p id="wDesc"></p></div>
+    <div class="wl">
+      <div class="box reveal">
+        <h3 id="wRulesTitle"></h3>
+        <div class="rules" id="wRules"></div>
+        <div class="side-note" id="wSideNote"></div>
+      </div>
+      <div class="box reveal">
+        <form id="wlForm" novalidate>
+          <div class="form-grid" id="formFields"></div>
+          <input class="hp" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="actions">
+            <button type="submit" class="btn primary" id="wlSubmit"></button>
+            <button type="button" class="btn sm" id="wlClear"></button>
+            <span class="side" id="wlModeHint"></span>
+          </div>
+          <p class="agree-note" id="wlAgree"></p>
+        </form>
+        <div class="done" id="wlDone">
+          <div class="done-icon" id="doneIcon">✓</div>
+          <h3 id="doneTitle"></h3>
+          <p id="doneDesc"></p>
+          <pre class="preview" id="donePreview"></pre>
+          <div class="done-btns">
+            <button class="btn sm primary" id="doneCopy"></button>
+            <button class="btn sm" id="doneAgain"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about" class="sec">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="label" id="aLabel"></div><h2 id="aTitle"></h2><p id="aDesc"></p></div>
+    <div class="cols reveal" id="features"></div>
+    <div class="box reveal" style="margin-top:16px">
+      <h3 id="aStepsTitle"></h3>
+      <div class="steps" id="aSteps"></div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap foot"><span id="footL"></span><span id="footR"></span></div></footer>
+
+<div class="lb" id="lb">
+  <button class="close" id="lbClose">✕</button>
+  <button class="prev" id="lbPrev">‹</button>
+  <button class="next" id="lbNext">›</button>
+  <img id="lbImg" alt="">
+  <div class="lb-cap"><b id="lbTitle"></b><span id="lbDesc"></span></div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-// JSON 清单文件（在 image 文件夹里），按顺序尝试
-const JSON_FILES = ['image/image.json', 'image/manifest.json', 'image/list.json'];
-const ROOT = 'image/';
+/* ══════════════════════════════════════════════════════════════
+   ①  服务器基础信息
+   ══════════════════════════════════════════════════════════════ */
+const SITE = {
+  name: "Crafter",
+  ip: "mc.rua.by",
+  version: "26.2",
+  hero: "",   // 首页背景图，没有就填 ""
+  status: true,                  // 是否联网查询在线人数
+  premium: false                  // 正版验证服？false = 离线服（影响 UUID 提示）
+};
 
-const gallery = document.getElementById('gallery');
-const errorBox = document.getElementById('error');
+/* ══════════════════════════════════════════════════════════════
+   ②  全站文案 —— 页面上每一个字都在这里
+   变量：{name} {ip} {version} {year} {imgCount} {fileCount}
+   ══════════════════════════════════════════════════════════════ */
+const TEXT = {
+  meta:{ title:"{name} · Minecraft 服务器", desc:"{name} Minecraft 服务器官网 · 图片展示 · 投影下载 · 白名单申请" },
 
-function fail(){
-  gallery.innerHTML = '';
-  gallery.style.display = 'none';
-  errorBox.style.display = 'block';
+  nav:{
+    logo:"{name}",
+    links:[
+      {text:"首页",       href:"#home"},
+      {text:"图片展示",   href:"#gallery"},
+      {text:"投影下载",   href:"#downloads"},
+      {text:"服务器规则", href:"#rules"},
+      {text:"白名单",     href:"#whitelist"},
+      {text:"关于我们",   href:"#about"}
+    ],
+    cta:{text:"申请白名单", href:"#whitelist"}   // 不需要就设为 null
+  },
+
+  hero:{
+    titleLines:["Crafter 服务器"],   // h1 每行一条
+    accentLines:[1],                      // 第几行标绿（从 1 开始）
+    slogan:"自由、养老、生电、建筑、摄影",
+    copyBtn:"复制 IP：{ip}",
+    btn2:{text:"申请白名单 →", href:"#whitelist"},
+    badge:{ loading:"正在查询服务器状态…", online:"服务器在线 · {online}/{max} 人",
+            offline:"服务器当前离线", fallback:"版本 {version} · 欢迎加入" },
+    stats:[
+      {value:"{version}",   label:"游戏版本"},
+      {value:"{imgCount}",  label:"展示图片"},
+      {value:"{fileCount}", label:"投影文件"},
+      {value:"qwq",        label:"随缘在线"}
+    ]
+  },
+
+  gallery:{ label:"Gallery", title:"图片展示",
+    desc:"服务器内实拍与渲染作品，点击任意图片查看大图（← → 切换，Esc 关闭）。",
+    placeholder:"IMAGE {n}", arrow:"→", counter:"{i} / {total}" },
+
+  downloads:{ label:"Schematics", title:"资源下载",
+    desc:"全部投影开放下载。",
+    searchPlaceholder:"搜索资源名称 / 作者 / 描述…",
+    allTag:"全部", downloadBtn:"下载 · {size}", empty:"没有找到匹配的资源 ¯\\_(ツ)_/¯",
+    metaIcons:{author:"👤", dim:"📐", blocks:"🧱", mc:"🎮", date:"🗓"},
+    note:'转载请保留作者署名。'
+  },
+
+  rules:{
+    label:"Rules", title:"服务器规则",
+    desc:"进服即视为已阅读并同意以下全部条款。规则会随版本更新，请以本页最新内容为准。",
+    pills:["规则版本 v0.1","最后更新 2026-11-20","适用于全体玩家"],
+    punishTitle:"⚖️ 处罚参考",
+    punishHead:["违规行为","首次","再次","情节严重"],
+    appeal:'💬 对处罚有异议？请向管理组提出申诉，并附上时间与截图证据。',
+    note:"本规则最终解释权归管理组所有；未列明的行为，管理组有权依据常识与社区共识裁定。"
+  },
+
+  whitelist:{
+    label:"Whitelist", title:"白名单申请",
+    desc:"只需填写游戏 ID 即可申请。UUID 会在你输入 ID 后自动查询，加入理由为选填。",
+    rulesTitle:"📋 申请前必读",
+    rules:[
+      '提交前请先阅读完整 <a href="#rules">服务器规则</a>，提交即视为同意。',
+      "一人一号，白名单不可转让、不可共享。",
+      "禁止作弊客户端、矿透材质与恶意破坏，违者永久封禁。",
+      "本页不收集任何个人信息，申请内容仅编辑。"
+    ],
+    sideNote:"点击提交后，申请内容会复制到你的剪贴板，请按你已知的方式发送给管理组。",
+    optionalTag:"（选填）",
+    submitBtn:"生成并复制申请", submitting:"处理中…", clearBtn:"清空",
+    modeHint:"内容只复制到剪贴板，不会上传到任何服务器",
+    agreeNote:'提交即表示你已阅读并同意 <a href="#rules">服务器规则</a>。',
+    lookup:{
+      loading:"正在自动查询 UUID…",
+      ok:"已自动填入 {name} 的 UUID（来源 {provider}）",
+      okOffline:"已找到正版账号 {name}。UUID 仅供参考，离线玩家注意检查UUID是否正确，否则可能无法进服！",
+      notFound:"未找到该正版 ID。若你使用离线账号，注意填入实际UUID，否则可能无法进服！",
+      fail:"查询服务暂时不可用，请填入实际UUID，否则可能无法进服！",
+      invalid:"ID 格式不正确，请检查后重新输入",
+      retry:"重试", cached:"（缓存）"
+    },
+    msg:{
+      required:"请填写「{field}」", pattern:"格式不正确",
+      min:"不能小于 {min}", max:"不能大于 {max}", select:"请选择一项"
+    },
+    success:{ title:"申请内容已复制", desc:"请把剪贴板中的内容发送给服务器管理组。若复制失败，可手动选中下方文本复制。" },
+    error:{ title:"复制失败", desc:"浏览器阻止了剪贴板访问。请手动选中下方文本复制后发送给管理组。" },
+    doneCopyBtn:"复制", doneAgainBtn:"再填一份",
+    previewTitle:"【白名单申请】{id}"
+  },
+
+  about:{
+    label:"About", title:"加入我们", desc:"一个随缘服务器qwq",
+    stepsTitle:"🚀 三步进服",
+    steps:[
+      "准备对应版本的 Minecraft 客户端（当前 {version}）。",
+      "通过上方表单生成申请内容，发送给管理组等待审核。",
+      '审核通过后：多人游戏 → 添加服务器 → 粘贴 IP：<span class="ip">{ip}</span>'
+    ]
+  },
+
+  footer:{ left:"© {year} {name} · All rights reserved.",
+           right:"本站与 Mojang / Microsoft 无隶属关系 · Powered by GitHub Pages" },
+
+  toast:{ ipCopied:"已复制服务器 IP：{ip}", formCopied:"申请内容已复制到剪贴板",
+          copyFail:"复制失败，请手动选中内容复制", draftCleared:"已清空表单",
+          uuidFound:"已自动填入 {name} 的 UUID" }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ③  白名单表单（提交方式：仅剪贴板复制，无任何网络上传）
+   ══════════════════════════════════════════════════════════════ */
+const FORM = {
+  idPrefix: "WL",       // 申请编号前缀
+  saveDraft: true,      // 草稿仅保存在本地 localStorage
+  showPreview: true,    // 成功后展示申请文本，便于手动复制
+
+  /* UUID 自动查询 */
+  uuidLookup:{
+    enabled: true,
+    idKey: "id",
+    uuidKey: "uuid",
+    auto: true,          // 输入 ID 后自动查询
+    debounce: 1200,       // 停止输入多少毫秒后触发
+    lookupOnBlur: true,  // 离开 ID 输入框时立即查询
+    format: "dashed",    // dashed = 带连字符 / plain = 32 位
+    timeout: 8000,       // 单个接口超时（毫秒）
+    overwriteManual: false // 用户手填过 UUID 时是否覆盖
+  },
+
+  fields:[
+    { key:"id", label:"游戏 ID", type:"text", half:true, required:true,
+      placeholder:"Steve", hint:"需与进服使用的 ID 完全一致",
+      pattern:"^[A-Za-z0-9_]{3,16}$", patternMsg:"3-16 位字母、数字或下划线" },
+      // 离线服允许中文名就把 pattern 改成："^.{2,20}$"
+
+    { key:"uuid", label:"UUID", type:"text", half:true, required:false, mono:true, lookup:true,
+      placeholder:"留空也可以", hint:"若你使用离线账号，注意填入实际UUID，否则可能无法进服！" },
+
+    { key:"reason", label:"加入理由", type:"textarea", required:false, maxlength:500,
+      placeholder:"想加入我们的原因、打算在服务器里做什么、想玩什么…（选填）" }
+  ]
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ④  图片展示
+   ══════════════════════════════════════════════════════════════ */
+const GALLERY = [
+  { src:"assets/image/test.png", title:"(test) test.png",   desc:"(test)" }
+];
+
+/* ══════════════════════════════════════════════════════════════
+   ⑤  文件
+   ══════════════════════════════════════════════════════════════ */
+const FILES = [
+  { name:"(test) test.txt", file:"assets/file/test.txt", tag:"test",
+    desc:"(test)", author:"master", size:"7.8 MB",
+    dim:"-", blocks:"-", mc:"26.2", date:"2026-11-20" }
+];
+
+/* ══════════════════════════════════════════════════════════════
+   ⑥  特色卡片
+   ══════════════════════════════════════════════════════════════ */
+const FEATURES = [
+  { icon:"🤝", title:"友好社区", desc:"无氪金无特权，新人有指导与起步物资。" }
+];
+
+/* ══════════════════════════════════════════════════════════════
+   ⑦  服务器规则示例
+   ══════════════════════════════════════════════════════════════ */
+const RULES = [
+  { icon:"🤝", title:"基本准则", desc:"人和人之间的底线",
+    items:[
+      "尊重每一位玩家，禁止辱骂、歧视、人身攻击与恶意骚扰。",
+      "禁止刷屏、广告、拉人进其他服务器或发布无关链接。",
+      "禁止冒充管理组成员，或以管理组名义发布任何信息。",
+      "服从管理组的合理裁定，有异议请走申诉流程而非公开对线。"
+    ]},
+  { icon:"🎮", title:"公平游戏", desc:"零容忍红线",
+    items:[
+      "禁止任何作弊客户端、外挂、矿透材质",
+      "允许：小地图、光影、Litematica 投影、性能优化模组。",
+      "发现 BUG 请第一时间上报，利用漏洞刷物品一律按作弊处理。",
+      "禁止使用小号绕过封禁、禁言。"
+    ]},
+  { icon:"⚙️", title:"红石与性能", desc:"服务器是大家的",
+    items:[
+      "禁止建造刻意卡服的装置。",
+      "实体总数高请报备。",
+      "掉落物请及时清理，禁止故意堆积物品实体制造卡顿。",
+      "大型农场需加装开关，离开时关闭；漏斗矿车用完请回收。"
+    ]},
+  { icon:"💰", title:"交易与聊天", desc:"诚信第一",
+    items:[
+      "禁止诈骗，交易前请双方确认物品与价格，建议保留聊天记录。",
+      "禁止用现实货币交易服务器内物品、账号或白名单资格。",
+      "禁止公开他人真实姓名、住址、联系方式等隐私信息。",
+      "公共频道请使用中文或英文，方便管理组巡查。"
+    ]},
+  { icon:"🔐", title:"账号与安全", desc:"你的账号你负责",
+    items:[
+      "一人一号，白名单与账号绑定，不可转让、出借或共享。",
+      "账号被盗期间的违规行为，责任由账号所有者承担。",
+      "服务器为公益性质，不接受任何形式的付费特权。"
+    ]}
+];
+
+/* 处罚阶梯：level = warn（黄）/ ban（红） */
+const PUNISH = [
+  { act:"辱骂 / 刷屏 / 广告",    a:"警告",             b:"禁言 24 小时", c:"封禁 7 天", level:"warn" },
+  { act:"偷窃 / 破坏",     a:"封禁 7 天",      b:"封禁 7 天",    c:"永久封禁",  level:"ban" },
+  { act:"恶意卡服 / 大型 Grief", a:"封禁 7 天",        b:"永久封禁",     c:"永久封禁",  level:"ban"  },
+  { act:"作弊客户端 / 矿透",     a:"永久封禁",         b:"永久封禁",     c:"永久封禁",  level:"ban"  },
+  { act:"利用 BUG 刷物品",       a:"清空 + 封禁 7 天", b:"永久封禁",     c:"永久封禁",  level:"ban"  },
+  { act:"小号绕过处罚 / 诈骗",   a:"永久封禁",         b:"永久封禁",     c:"永久封禁",  level:"ban"  }
+];
+
+/* ══════════════════════════════════════════════════════════════
+   以下为渲染逻辑，正常情况不需要修改
+   ══════════════════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function vars(){ return {name:SITE.name, ip:SITE.ip, version:SITE.version,
+  year:new Date().getFullYear(), imgCount:GALLERY.length, fileCount:FILES.length}; }
+function t(str, extra={}){ const v={...vars(),...extra};
+  return String(str??"").replace(/\{(\w+)\}/g,(m,k)=> k in v ? v[k] : m); }
+function set(sel,str,extra){ const el=$(sel); if(el) el.innerHTML=t(str,extra); }
+let tt; function toast(msg){ const el=$("#toast"); el.textContent=msg; el.classList.add("show");
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("show"),2400); }
+async function copy(text){
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch(e){ try{ const a=document.createElement("textarea"); a.value=text; a.style.position="fixed";
+    a.style.opacity="0"; document.body.appendChild(a); a.select();
+    const ok=document.execCommand("copy"); a.remove(); return ok; }catch(_){ return false; } }
 }
 
-// 兼容三种写法：["a.jpg"] / {"images":["a.jpg"]} / [{"src":"a.jpg","title":"标题"}]
-function parseList(data){
-  const arr = Array.isArray(data) ? data : (data && Array.isArray(data.images) ? data.images : null);
-  if(!arr) return null;
-  const list = arr.map(x => {
-    const p = typeof x === 'string' ? x : (x && (x.src || x.path || x.url));
-    if(!p || typeof p !== 'string') return null;
-    const src = /^(https?:|\/)/i.test(p) || p.startsWith(ROOT) ? p : ROOT + p;
-    const title = (typeof x === 'object' && x.title) || decodeURIComponent(p.split('/').pop());
-    return {src, title};
-  }).filter(Boolean);
-  return list.length ? list : null;
+/* --- 基础文案 --- */
+document.title = t(TEXT.meta.title);
+document.querySelector('meta[name="description"]').content = t(TEXT.meta.desc);
+set("#logoName",TEXT.nav.logo);
+$("#menu").innerHTML = TEXT.nav.links.map(l=>`<a href="${l.href}">${t(l.text)}</a>`).join("")
+  + (TEXT.nav.cta?`<a href="${TEXT.nav.cta.href}" class="cta">${t(TEXT.nav.cta.text)}</a>`:"");
+$("#heroTitle").innerHTML = TEXT.hero.titleLines
+  .map((l,i)=> TEXT.hero.accentLines.includes(i+1) ? `<em>${t(l)}</em>` : t(l)).join("<br>");
+set("#slogan",TEXT.hero.slogan);
+set("#copyIpText",TEXT.hero.copyBtn);
+$("#heroBtn2").href = TEXT.hero.btn2.href; set("#heroBtn2",TEXT.hero.btn2.text);
+$("#stats").innerHTML = TEXT.hero.stats.map(s=>`<div><b>${t(s.value)}</b><span>${t(s.label)}</span></div>`).join("");
+set("#statusText",TEXT.hero.badge.loading);
+if(SITE.hero) $("#heroBg").style.backgroundImage=`url("${SITE.hero}")`;
+$("#copyIp").onclick = async ()=> toast(await copy(SITE.ip) ? t(TEXT.toast.ipCopied) : t(TEXT.toast.copyFail));
+
+/* --- 画廊 --- */
+set("#gLabel",TEXT.gallery.label); set("#gTitle",TEXT.gallery.title); set("#gDesc",TEXT.gallery.desc);
+$("#galleryGrid").innerHTML = GALLERY.map((g,i)=>`
+  <div class="card reveal" data-i="${i}">
+    <div class="thumb"><span>${t(TEXT.gallery.placeholder,{n:i+1})}</span>
+      <img src="${esc(g.src)}" alt="${esc(g.title)}" loading="lazy" onerror="this.style.display='none'"></div>
+    <div class="cap"><div><h3>${esc(g.title)}</h3><p>${esc(g.desc||"")}</p></div>
+      <span class="arrow">${TEXT.gallery.arrow}</span></div>
+  </div>`).join("");
+let cur=0; const lb=$("#lb");
+function openLb(i){ cur=(i+GALLERY.length)%GALLERY.length; const g=GALLERY[cur];
+  $("#lbImg").src=g.src; $("#lbTitle").textContent=g.title;
+  $("#lbDesc").textContent=`${g.desc||""} · ${t(TEXT.gallery.counter,{i:cur+1,total:GALLERY.length})}`;
+  lb.classList.add("open"); document.body.style.overflow="hidden"; }
+function closeLb(){ lb.classList.remove("open"); document.body.style.overflow=""; }
+$("#galleryGrid").onclick=e=>{const c=e.target.closest(".card"); if(c) openLb(+c.dataset.i);};
+$("#lbClose").onclick=closeLb;
+$("#lbPrev").onclick=e=>{e.stopPropagation();openLb(cur-1);};
+$("#lbNext").onclick=e=>{e.stopPropagation();openLb(cur+1);};
+lb.onclick=e=>{ if(e.target===lb||e.target.id==="lbImg") closeLb(); };
+document.addEventListener("keydown",e=>{ if(!lb.classList.contains("open"))return;
+  if(e.key==="Escape")closeLb(); if(e.key==="ArrowLeft")openLb(cur-1); if(e.key==="ArrowRight")openLb(cur+1); });
+
+/* --- 下载 --- */
+set("#dLabel",TEXT.downloads.label); set("#dTitle",TEXT.downloads.title); set("#dDesc",TEXT.downloads.desc);
+$("#q").placeholder=t(TEXT.downloads.searchPlaceholder); set("#dNote",TEXT.downloads.note);
+const tags=[TEXT.downloads.allTag,...new Set(FILES.map(f=>f.tag))]; let activeTag=tags[0];
+$("#chips").innerHTML=tags.map((x,i)=>`<button class="chip${i===0?" on":""}" data-t="${esc(x)}">${esc(x)}</button>`).join("");
+$("#chips").onclick=e=>{const b=e.target.closest(".chip"); if(!b)return; activeTag=b.dataset.t;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===b)); renderFiles();};
+$("#q").oninput=renderFiles;
+function renderFiles(){
+  const kw=$("#q").value.trim().toLowerCase();
+  const list=FILES.filter(f=>(activeTag===tags[0]||f.tag===activeTag) &&
+    (!kw||(f.name+f.desc+f.author+f.tag).toLowerCase().includes(kw)));
+  const icons=TEXT.downloads.metaIcons;
+  $("#fileList").innerHTML = list.length ? list.map(f=>`
+    <div class="row">
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg></div>
+      <div class="info">
+        <h3>${esc(f.name)}<span class="badge">${esc(f.tag)}</span></h3>
+        <p>${esc(f.desc||"")}</p>
+        <div class="meta">${["author","dim","blocks","mc","date"].filter(k=>f[k])
+          .map(k=>`<span>${icons[k]||""} ${esc(f[k])}</span>`).join("")}</div>
+      </div>
+      <div class="dl"><a class="btn primary" href="${esc(f.file)}" download>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
+        ${t(TEXT.downloads.downloadBtn,{size:f.size||""})}</a></div>
+    </div>`).join("") : `<div class="empty">${esc(TEXT.downloads.empty)}</div>`;
 }
+renderFiles();
 
-async function load(){
-  for(const file of JSON_FILES){
-    try{
-      const res = await fetch(file, {cache:'no-store'});
-      if(!res.ok) continue;
-      const list = parseList(await res.json());
-      if(!list) continue;
+/* --- 服务器规则 --- */
+const R=TEXT.rules;
+set("#rLabel",R.label); set("#rTitle",R.title); set("#rDesc",R.desc);
+$("#rPills").innerHTML=R.pills.map(p=>`<span class="pill">${t(p)}</span>`).join("");
+$("#ruleGrid").innerHTML=RULES.map(g=>`
+  <div class="rule-card reveal">
+    <h3>${g.icon} ${esc(g.title)}</h3>
+    <div class="rd">${esc(g.desc||"")}</div>
+    <ul class="rule-list">${g.items.map(i=>`<li><span>${t(i)}</span></li>`).join("")}</ul>
+  </div>`).join("");
+set("#rPunishTitle",R.punishTitle);
+$("#rPunishHead").innerHTML=`<tr>${R.punishHead.map(h=>`<th>${esc(h)}</th>`).join("")}</tr>`;
+$("#rPunishBody").innerHTML=PUNISH.map(p=>`
+  <tr><td>${esc(p.act)}</td>
+    <td><span class="lv ${p.level}">${esc(p.a)}</span></td>
+    <td><span class="lv ${p.level}">${esc(p.b)}</span></td>
+    <td><span class="lv ban">${esc(p.c)}</span></td></tr>`).join("");
+set("#rAppeal",R.appeal); set("#rNote",R.note);
 
-      const frag = document.createDocumentFragment();
-      list.forEach(({src, title}) => {
-        const fig = document.createElement('figure');
-        fig.className = 'card';
-        const img = document.createElement('img');
-        img.loading = 'lazy';
-        img.src = encodeURI(src);
-        img.alt = title;
-        img.onerror = () => fig.remove();      // 单张坏图直接移除
-        const cap = document.createElement('figcaption');
-        cap.textContent = title;
-        cap.title = title;
-        fig.append(img, cap);
-        frag.appendChild(fig);
-      });
-      gallery.appendChild(frag);
-      return;                                   // 成功，结束
-    }catch(e){ /* 换下一个候选文件 */ }
+/* --- 白名单：静态文案 --- */
+const W=TEXT.whitelist, LK=FORM.uuidLookup;
+set("#wLabel",W.label); set("#wTitle",W.title); set("#wDesc",W.desc);
+set("#wRulesTitle",W.rulesTitle); set("#wSideNote",W.sideNote);
+$("#wRules").innerHTML=W.rules.map((r,i)=>`<div class="rule"><b>${i+1}</b><span>${t(r)}</span></div>`).join("");
+set("#wlSubmit",W.submitBtn); set("#wlClear",W.clearBtn);
+set("#wlModeHint",W.modeHint); set("#wlAgree",W.agreeNote);
+set("#doneCopy",W.doneCopyBtn); set("#doneAgain",W.doneAgainBtn);
+
+/* --- 白名单：动态表单 --- */
+$("#formFields").innerHTML = FORM.fields.map(f=>{
+  const id="f_"+f.key;
+  const req = f.required ? '<span class="req">*</span>' : `<span class="opt-tag">${esc(W.optionalTag)}</span>`;
+  const counter=f.maxlength?`<span class="counter" id="c_${f.key}">0 / ${f.maxlength}</span>`:"";
+  const label=`<label for="${id}">${t(f.label)} ${req}${counter}</label>`;
+  const cls=f.mono?' class="mono"':"";
+  let input;
+  if(f.type==="textarea"){
+    input=`<textarea id="${id}" name="${f.key}" placeholder="${esc(t(f.placeholder||""))}"${f.maxlength?` maxlength="${f.maxlength}"`:""}></textarea>`;
+  }else{
+    input=`<input id="${id}" name="${f.key}" type="${f.type||"text"}"${cls} placeholder="${esc(t(f.placeholder||""))}"${f.maxlength?` maxlength="${f.maxlength}"`:""} autocomplete="off" spellcheck="false">`;
+    if(f.lookup && LK.enabled){
+      input += `<div class="lookup-line"><span class="lookup-msg" id="lookupMsg"></span>`
+             + `<button type="button" class="lookup-retry" id="lookupRetry">${esc(W.lookup.retry)}</button></div>`;
+    }
   }
-  fail();                                       // 全部失败
+  return `<div class="field${f.half?" half":""}" data-k="${f.key}">${label}${input}${f.hint?`<div class="hint">${t(f.hint)}</div>`:""}<div class="err"></div></div>`;
+}).join("");
+
+const wlForm=$("#wlForm");
+function fieldWrap(k){ return wlForm.querySelector(`.field[data-k="${k}"]`); }
+function val(f){ const el=fieldWrap(f.key).querySelector("input,select,textarea"); return el?el.value.trim():""; }
+function setErr(f,msg){ const w=fieldWrap(f.key);
+  w.classList.toggle("bad",!!msg); w.querySelector(".err").textContent=msg||""; }
+function validate(){
+  let first=null;
+  FORM.fields.forEach(f=>{
+    const v=val(f); let msg="";
+    if(f.required && !v) msg=t(W.msg.required,{field:t(f.label).replace(/<[^>]+>/g,"")});
+    else if(v && f.pattern && !new RegExp(f.pattern).test(v)) msg=t(f.patternMsg||W.msg.pattern);
+    setErr(f,msg); if(msg&&!first) first=f;
+  });
+  if(first){ const w=fieldWrap(first.key); w.scrollIntoView({behavior:"smooth",block:"center"});
+    const el=w.querySelector("input,textarea"); if(el) setTimeout(()=>el.focus(),400); }
+  return !first;
+}
+/* 字数统计 + 本地草稿 */
+const DRAFT="mc_wl_draft_"+SITE.name;
+function collect(){ const o={}; FORM.fields.forEach(f=>o[f.key]=val(f)); return o; }
+function saveDraft(){ if(!FORM.saveDraft)return; try{localStorage.setItem(DRAFT,JSON.stringify(collect()));}catch(e){} }
+function updateCounters(){
+  FORM.fields.filter(f=>f.maxlength).forEach(f=>{
+    const el=wlForm.querySelector(`#f_${f.key}`), c=wlForm.querySelector(`#c_${f.key}`);
+    if(el&&c) c.textContent=`${el.value.length} / ${f.maxlength}`;
+  });
+}
+function loadDraft(){
+  if(!FORM.saveDraft)return;
+  let d; try{ d=JSON.parse(localStorage.getItem(DRAFT)||"null"); }catch(e){ return; }
+  if(!d)return;
+  FORM.fields.forEach(f=>{ if(!(f.key in d))return;
+    const el=fieldWrap(f.key).querySelector("input,textarea"); if(el) el.value=d[f.key]; });
+  updateCounters();
+  if(d[LK.uuidKey]) uuidTouched=true;   // 草稿里的 UUID 视为已存在，不自动覆盖
+}
+wlForm.addEventListener("input",()=>{updateCounters();saveDraft();});
+
+/* ══════ UUID 自动查询 ══════ */
+const UUID_RE   = /^[0-9a-fA-F]{32}$/;
+const UUID_DASH = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+const normUuid = u => String(u||"").replace(/-/g,"").toLowerCase();
+const validUuid = u => UUID_RE.test(String(u||"")) || UUID_DASH.test(String(u||""));
+function fmtUuid(u){ const s=normUuid(u);
+  return LK.format==="plain" ? s : `${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20)}`; }
+
+const idField   = FORM.fields.find(f=>f.key===LK.idKey);
+const uuidField = FORM.fields.find(f=>f.key===LK.uuidKey);
+if(uuidField && !uuidField.pattern){
+  uuidField.pattern = UUID_RE.source+"|"+UUID_DASH.source;
+  uuidField.patternMsg = "UUID 格式不正确（32 位十六进制，可带连字符）";
 }
 
-load();
+/* 公共 API（均支持 CORS），按顺序降级 */
+const PROVIDERS = [
+  { name:"PlayerDB",
+    url:n=>`https://playerdb.co/api/player/minecraft/${encodeURIComponent(n)}`,
+    pick:j=> j?.data?.player?.raw_id ? {uuid:j.data.player.raw_id, name:j.data.player.username} : null },
+  { name:"Ashcon",
+    url:n=>`https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(n)}`,
+    pick:j=> j?.uuid ? {uuid:j.uuid, name:j.username} : null },
+  { name:"Minetools",
+    url:n=>`https://api.minetools.eu/uuid/${encodeURIComponent(n)}`,
+    pick:j=> (j?.id && !j.error && UUID_RE.test(j.id)) ? {uuid:j.id, name:j.name} : null }
+];
+const uuidCache=new Map();
+let lookupSeq=0, debounceTimer=null, lastResolved="", uuidTouched=false, autoFilled=false;
+
+async function fetchJson(url, ms){
+  const c=new AbortController(); const timer=setTimeout(()=>c.abort(), ms);
+  try{
+    const r=await fetch(url,{signal:c.signal,headers:{Accept:"application/json"}});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  } finally { clearTimeout(timer); }
+}
+/* 状态行：kind = load / ok / bad / ""（清空） */
+function lookupStatus(text, kind, retry){
+  const m=$("#lookupMsg"), r=$("#lookupRetry"); if(!m) return;
+  if(!text){ m.className="lookup-msg"; m.innerHTML=""; if(r) r.classList.remove("show"); return; }
+  m.className="lookup-msg show is-"+kind;
+  m.innerHTML = (kind==="load"?'<span class="spin"></span>':"") + esc(text);
+  if(r) r.classList.toggle("show", !!retry);
+}
+function clearUuidIfAuto(){
+  if(!autoFilled) return;
+  const el=fieldWrap(uuidField.key).querySelector("input");
+  el.value=""; autoFilled=false; uuidTouched=false; saveDraft();
+}
+async function runLookup(force){
+  if(!LK.enabled || !uuidField) return;
+  const name=val(idField);
+  if(!name){ lookupStatus(""); clearUuidIfAuto(); return; }
+  if(idField.pattern && !new RegExp(idField.pattern).test(name)){
+    lookupStatus(t(W.lookup.invalid),"bad",false); return; }
+  setErr(idField,"");
+  if(!force && name.toLowerCase()===lastResolved) return;
+
+  const uEl=fieldWrap(uuidField.key).querySelector("input");
+  if(uuidTouched && !autoFilled && uEl.value && !LK.overwriteManual && !force) return;
+
+  const seq=++lookupSeq, key=name.toLowerCase();
+  let hit=uuidCache.get(key), cached=!!hit;
+  if(!hit) lookupStatus(t(W.lookup.loading),"load",false);
+
+  if(!hit){
+    for(const p of PROVIDERS){
+      try{
+        const j=await fetchJson(p.url(name), LK.timeout);
+        const r=p.pick(j);
+        if(r && validUuid(r.uuid)){ hit={...r, provider:p.name}; uuidCache.set(key,hit); break; }
+      }catch(e){ /* 换下一家 */ }
+      if(seq!==lookupSeq) return;      // 已有更新的输入，丢弃本次结果
+    }
+  }
+  if(seq!==lookupSeq) return;
+  lastResolved=key;
+
+  if(hit){
+    if(!uuidTouched || autoFilled || LK.overwriteManual || force){
+      uEl.value=fmtUuid(hit.uuid); autoFilled=true; setErr(uuidField,""); saveDraft();
+      toast(t(TEXT.toast.uuidFound,{name:hit.name||name}));
+    }
+    const msg = SITE.premium ? W.lookup.ok : W.lookup.okOffline;
+    lookupStatus(t(msg,{name:hit.name||name, provider:hit.provider}) + (cached?" "+W.lookup.cached:""), "ok", false);
+  }else{
+    lookupStatus(t(W.lookup.notFound),"bad",true);
+  }
+}
+function scheduleLookup(){
+  if(!LK.enabled || !LK.auto) return;
+  clearTimeout(debounceTimer);
+  debounceTimer=setTimeout(()=>runLookup(false), LK.debounce);
+}
+if(LK.enabled && uuidField){
+  const idEl=fieldWrap(idField.key).querySelector("input");
+  const uEl =fieldWrap(uuidField.key).querySelector("input");
+  idEl.addEventListener("input",()=>{
+    const key=val(idField).toLowerCase();
+    if(key!==lastResolved){ clearUuidIfAuto(); lookupStatus(""); }
+    scheduleLookup();
+  });
+  if(LK.lookupOnBlur) idEl.addEventListener("blur",()=>{ clearTimeout(debounceTimer); runLookup(false); });
+  idEl.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); clearTimeout(debounceTimer); runLookup(true); } });
+  uEl.addEventListener("input",()=>{ uuidTouched=!!uEl.value; if(uuidTouched) autoFilled=false; });
+  const retry=$("#lookupRetry"); if(retry) retry.onclick=()=>runLookup(true);
+}
+loadDraft();
+$("#wlClear").onclick=()=>{ wlForm.reset(); FORM.fields.forEach(f=>setErr(f,""));
+  lookupStatus(""); lastResolved=""; uuidTouched=false; autoFilled=false; lookupSeq++;
+  clearTimeout(debounceTimer);
+  try{localStorage.removeItem(DRAFT);}catch(e){} updateCounters(); toast(t(TEXT.toast.draftCleared)); };
+
+/* --- 白名单：生成文本 + 复制（无任何网络提交） --- */
+function newId(){ const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return `${FORM.idPrefix}-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${Math.random().toString(36).slice(2,6).toUpperCase()}`; }
+function buildText(data,id){
+  const lines=[t(W.previewTitle,{id}), `服务器：${SITE.name}（${SITE.ip}）`, ""];
+  FORM.fields.forEach(f=>{ const v=data[f.key]; if(v) lines.push(`${t(f.label).replace(/<[^>]+>/g,"")}：${v}`); });
+  const empty=FORM.fields.filter(f=>!data[f.key]).map(f=>t(f.label).replace(/<[^>]+>/g,""));
+  if(empty.length) lines.push(`（未填写：${empty.join("、")}）`);
+  lines.push("", `提交时间：${new Date().toLocaleString("zh-CN")}`);
+  return lines.join("\n");
+}
+let lastText="";
+function showDone(ok,payload){
+  const cfg = ok ? W.success : W.error;
+  $("#wlForm").style.display="none";
+  const d=$("#wlDone"); d.classList.add("show"); d.classList.toggle("bad",!ok);
+  $("#doneIcon").textContent = ok?"✓":"!";
+  $("#doneTitle").textContent=t(cfg.title); $("#doneDesc").textContent=t(cfg.desc);
+  lastText=payload||"";
+  $("#donePreview").textContent=payload||"";
+  $("#donePreview").classList.toggle("show", !!payload && FORM.showPreview);
+  d.scrollIntoView({behavior:"smooth",block:"center"});
+}
+$("#doneCopy").onclick=async()=>toast(await copy(lastText)?t(TEXT.toast.formCopied):t(TEXT.toast.copyFail));
+$("#doneAgain").onclick=()=>{ $("#wlDone").classList.remove("show"); $("#wlForm").style.display="";
+  wlForm.reset(); FORM.fields.forEach(f=>setErr(f,"")); updateCounters(); lookupStatus("");
+  lastResolved=""; uuidTouched=false; autoFilled=false;
+  try{localStorage.removeItem(DRAFT);}catch(e){} wlForm.scrollIntoView({behavior:"smooth",block:"center"}); };
+
+wlForm.addEventListener("submit", async e=>{
+  e.preventDefault();
+  if(wlForm.querySelector('[name="_gotcha"]').value) return;   // 蜜罐
+  if(!validate()) return;
+  const btn=$("#wlSubmit"); btn.disabled=true; btn.textContent=t(W.submitting);
+  const text=buildText(collect(), newId());
+  const ok=await copy(text);
+  btn.disabled=false; btn.innerHTML=t(W.submitBtn);
+  if(ok){ try{localStorage.removeItem(DRAFT);}catch(e){} }
+  showDone(ok,text);
+});
+
+/* --- 关于 / 页脚 --- */
+set("#aLabel",TEXT.about.label); set("#aTitle",TEXT.about.title); set("#aDesc",TEXT.about.desc);
+set("#aStepsTitle",TEXT.about.stepsTitle);
+$("#features").innerHTML=FEATURES.map(f=>`<div class="box"><h3>${f.icon} ${esc(f.title)}</h3><p>${esc(f.desc)}</p></div>`).join("");
+$("#aSteps").innerHTML=TEXT.about.steps.map((s,i)=>`<div class="step"><b>${i+1}</b><span>${t(s)}</span></div>`).join("");
+set("#footL",TEXT.footer.left); set("#footR",TEXT.footer.right);
+
+/* --- 交互杂项 --- */
+$("#burger").onclick=()=>$("#menu").classList.toggle("open");
+$("#menu").onclick=e=>{ if(e.target.tagName==="A") $("#menu").classList.remove("open"); };
+const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);} }),{threshold:.1});
+document.querySelectorAll(".reveal").forEach((el,i)=>{ el.style.transitionDelay=(i%6*40)+"ms"; io.observe(el); });
+const links=[...document.querySelectorAll('.nav-links a[href^="#"]')];
+const spy=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting)
+  links.forEach(a=>a.classList.toggle("active",a.getAttribute("href")==="#"+e.target.id)); }),
+  {rootMargin:"-45% 0px -50% 0px"});
+document.querySelectorAll("section[id]").forEach(s=>spy.observe(s));
+
+/* --- 在线状态 --- */
+if(SITE.status){
+  fetch("https://api.mcsrvstat.us/3/"+encodeURIComponent(SITE.ip))
+    .then(r=>r.json()).then(d=>{
+      $("#statusDot").className="dot "+(d.online?"on":"off");
+      $("#statusText").textContent = d.online
+        ? t(TEXT.hero.badge.online,{online:d.players?.online??0,max:d.players?.max??"?"})
+        : t(TEXT.hero.badge.offline);
+    }).catch(()=>{ $("#statusText").textContent=t(TEXT.hero.badge.fallback); });
+}else{ $("#statusText").textContent=t(TEXT.hero.badge.fallback); }
 </script>
 </body>
 </html>
