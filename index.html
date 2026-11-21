@@ -161,7 +161,7 @@ textarea{min-height:104px;resize:vertical;line-height:1.6}
 .field.bad input,.field.bad select,.field.bad textarea{border-color:#e5534b}
 .field.bad .err{display:block}
 
-/* UUID 自动查询状态行（独立命名空间，避免与结果图标样式冲突） */
+/* UUID 自动查询状态行 */
 .lookup-line{display:flex;align-items:center;gap:8px;margin-top:6px;min-height:18px;flex-wrap:wrap}
 .lookup-msg{font-size:12px;line-height:1.5;display:none;align-items:center;gap:7px;font-weight:400}
 .lookup-msg.show{display:inline-flex}
@@ -366,7 +366,7 @@ const SITE = {
   name: "Crafter",
   ip: "mc.rua.by",
   version: "26.2",
-  hero: "",   // 首页背景图，没有就填 ""
+  hero: "assert/image/title.png",   // 首页背景图，没有就填 ""
   status: true,                  // 是否联网查询在线人数
   premium: false                  // 正版验证服？false = 离线服（影响 UUID 提示）
 };
@@ -508,10 +508,10 @@ const FORM = {
       pattern:"^[A-Za-z0-9_]{3,16}$", patternMsg:"3-16 位字母、数字或下划线" },
       // 离线服允许中文名就把 pattern 改成："^.{2,20}$"
 
-    { key:"uuid", label:"UUID", type:"text", half:true, required:false, mono:true, lookup:true,
+    { key:"uuid", label:"UUID", type:"text", half:true, required:true, mono:true, lookup:true,
       placeholder:"留空也可以", hint:"若你使用离线账号，注意填入实际UUID，否则可能无法进服！" },
 
-    { key:"reason", label:"加入理由", type:"textarea", required:false, maxlength:500,
+    { key:"reason", label:"加入理由", type:"textarea", required:false, maxlength:1000,
       placeholder:"想加入我们的原因、打算在服务器里做什么、想玩什么…（选填）" }
   ]
 };
